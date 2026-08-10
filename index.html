@@ -639,15 +639,24 @@ function renderHome(){
   $('#street-empty').style.display = S.fleet.length ? 'none' : 'grid';
   $('#street-hint').textContent = S.fleet.length ? on.length+' de '+S.fleet.length+' en servicio' : 'sin unidades';
 
+  /* El objetivo se recalcula solo: siempre muestra lo siguiente que te toca */
   let g='', ic='📋';
-  if(!S.lic.length){ g='Saca la licencia Tipo A: 2,5 WLD'; ic='🪪'; }
-  else if(!S.flx && !S.fleet.length){ g='Compra FLX en el banco para tu primer vehículo'; ic='🪙'; }
-  else if(!S.fleet.length){ g='Compra tu primer vehículo con FLX'; ic='🛒'; }
-  else if(!on.length){ g='Pon un vehículo a trabajar'; ic='▶️'; }
-  else if(S.cr < CR_FLX){ g='Acumula créditos y cámbialos por FLX'; ic='🏦'; }
-  else if(S.fleet.some(v=>v.fuel/spec(v).tank<.25)){ g='Reposta: alguna unidad va justa de gasolina'; ic='⛽'; }
-  else if(S.fleet.length<2){ g='Amplía la flota o mejora lo que ya tienes'; ic='📈'; }
-  else { g='Sigue creciendo: nuevas zonas dan mejores tarifas'; ic='🚀'; }
+  const seco  = S.fleet.find(v => v.fuel <= 0 || v.wear <= 0);
+  const bajo  = S.fleet.find(v => v.fuel/spec(v).tank < .2 || v.wear < 20);
+  const nl    = nextLic();
+  const puede = CATALOG.filter(c => canDrive(c) && S.flx >= c.price).pop();
+
+  if(!S.lic && !S.fleet.length){ g='Saca la licencia Tipo A: 2,5 WLD'; ic='🪪'; }
+  else if(!S.fleet.length && S.flx < CATALOG[0].price){ g='Compra FLX en el banco para tu primer taxi'; ic='🪙'; }
+  else if(!S.fleet.length){ g='Compra tu primer vehículo'; ic='🛒'; }
+  else if(seco){ g=spec(seco).name+' está parado: tanquea o pásalo por el taller'; ic='🛠️'; }
+  else if(!on.length){ g='Pon tu flota a trabajar'; ic='▶️'; }
+  else if(bajo){ g='Una unidad va justa: repasa gasolina y taller'; ic='⛽'; }
+  else if(puede){ g='Ya te alcanza para un '+puede.name.toLowerCase(); ic='🛒'; }
+  else if(S.cr >= CR_FLX*500){ g='Tienes '+fmt(S.cr/CR_FLX)+' FLX sin cobrar en el banco'; ic='🏦'; }
+  else if(nl && S.wld >= nl.wld){ g='Puedes sacar la licencia '+nl.name+': '+fmtW(nl.wld)+' WLD'; ic='🪪'; }
+  else if(S.hours < 120){ g='Trabaja '+fmt(120-S.hours)+' horas más para el nivel 2'; ic='📈'; }
+  else { g='Sigue creciendo: las zonas nuevas pagan mejor tarifa'; ic='🚀'; }
   $('#goal-txt').textContent = g; $('#goal-ic').textContent = ic;
 }
 
@@ -1104,7 +1113,9 @@ async function loadChain(){
       readView('fleetOf', [who])
     ]);
     S.wld = wld; S.flx = flx;
-    if(pl){ S.lic = Number(pl[0]); S.hours = Number(pl[2]); S.crBase = parseFloat(ethers.formatUnits(pl[3], 18)); }
+    let pl2 = pl;
+    if(!pl2) pl2 = await readView('players', [who]);        // un reintento antes de rendirse
+    if(pl2){ S.lic = Number(pl2[0]); S.hours = Number(pl2[2]); S.crBase = parseFloat(ethers.formatUnits(pl2[3], 18)); }
     if(lvl) S.level = Number(lvl[0]);
 
     const list = ids ? ids[0] : [];
