@@ -367,8 +367,8 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
     <section class="screen" id="s-shop">
       <div class="eyebrow">Tienda de vehículos <span class="hint">Precios en FLX</span></div>
       <div class="card" style="margin-bottom:12px;font-size:12.5px;color:var(--muted)">
-        Cada vehículo está calibrado para <b style="color:var(--signal)">recuperar la inversión en unos 90 días</b>
-        trabajando 16 h diarias, ya descontando gasolina y mantenimiento.
+        Cada vehículo devuelve lo invertido en <b style="color:var(--signal)">30 días</b> trabajando sin
+        parar, ya descontando gasolina y taller. Después produce un 25% menos cada mes.
       </div>
       <div id="shop-list"></div>
       <div style="height:26px"></div>
@@ -403,13 +403,24 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         <button class="btn teal" id="btn-cash">Cambiar créditos por FLX</button>
       </div>
 
-      <div class="eyebrow">Conseguir FLX</div>
+      <div class="eyebrow">Mercado <span class="hint" id="mk-rate">—</span></div>
       <div class="card">
-        <div style="font-size:12.5px;color:var(--muted)">FLX se compra en el mercado. El pool está en
-        Uniswap sobre World Chain, emparejado con WLD.</div>
-        <div class="row"><a class="btn ghost sm" style="flex:1;text-decoration:none"
-          href="https://app.uniswap.org/swap?chain=worldchain&outputCurrency=0x330e1F5e60b8C3AE7c4e370792Da48C80f6f6FeE"
-          target="_blank" rel="noopener">Comprar FLX en Uniswap</a></div>
+        <div class="row" style="margin:0 0 12px">
+          <button class="btn ghost sm" id="mk-buy" data-mk="buy" style="flex:1">Comprar FLX</button>
+          <button class="btn ghost sm" id="mk-sell" data-mk="sell" style="flex:1">Vender FLX</button>
+        </div>
+        <label style="margin-top:0" id="mk-in-label">Pagas en WLD</label>
+        <input id="mk-amount" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px" id="mk-bal">—</div>
+        <label id="mk-out-label">Recibes FLX</label>
+        <div class="card" style="background:var(--slab-2);padding:12px">
+          <span class="mono" style="font-size:17px;font-weight:700;color:var(--signal)" id="mk-out">—</span>
+        </div>
+        <button class="btn teal" id="btn-swap" style="margin-top:12px">Intercambiar</button>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">
+          Estimación con el precio actual del pool. Se acepta hasta un 5% de diferencia;
+          si el precio se mueve más, la operación se cancela sola.
+        </div>
       </div>
 
       <div class="eyebrow">Cómo circula el dinero</div>
@@ -577,8 +588,8 @@ const fmtCR = (n,d=2) => n.toLocaleString('es-ES',{minimumFractionDigits:d,maxim
 const spec = v => CATALOG.find(c => c.id === v.type);
 const levelInfo = () => LEVELS.filter(l => S.hours >= l.h).pop();
 const zoneOf = v => ZONES.find(z => z.name === v.zone);
-const hasLic   = id => S.lic.includes(id);
-const nextLic  = () => LICENSES[S.lic.length] || null;
+const hasLic   = id => LICENSES.findIndex(l => l.id === id) < S.lic;
+const nextLic  = () => LICENSES[S.lic] || null;
 const canDrive = c => hasLic(c.lic);
 const zoneOpen = z => levelInfo().lvl >= z.lvl;
 const usd = w => (w*WLD_USD).toFixed(2).replace('.',',');
@@ -758,10 +769,10 @@ function renderCity(){
 }
 
 function renderBank(){
+  if(MK.ready !== undefined) renderMarket();
   const lots = Math.floor(S.cr/CR_FLX), rest = S.cr%CR_FLX;
   $('#bank-cr').textContent = fmtCR(S.cr,3);
   $('#bank-rate').textContent = `${CR_FLX} CR = 1 ${TOKEN}`;
-  $('#wld-rate').textContent = fmt(WLD_FLX);
   $('#bank-bar').style.width = (rest/CR_FLX*100)+'%';
   $('#bank-next').textContent = lots
     ? `Puedes cambiar ${fmt(lots*CR_FLX)} CR por ${fmt(lots)} ${TOKEN}`
@@ -1212,6 +1223,12 @@ document.addEventListener('click', e => {
   if(a==='setzone'){ closeSheet(); setZoneTx(id, b.dataset.zone); }
 });
 $('#btn-cash').addEventListener('click', cash);
+$('#btn-swap').addEventListener('click', doSwap);
+$('#mk-amount').addEventListener('input', e => { MK.amount = e.target.value.replace(',','.'); renderMarket(); });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mk]'); if(!b) return;
+  MK.dir = b.dataset.mk; MK.amount=''; $('#mk-amount').value=''; renderMarket();
+});
 
 /* =====================================================================
    8. ONBOARDING
@@ -1231,6 +1248,9 @@ const WORLD_RPC = 'https://worldchain-mainnet.g.alchemy.com/public';
 const WLD_ADDRESS  = '0x2cFc85d8E48F8EAB294be644d9E25C3030863003';
 const FLX_ADDRESS  = '0x330e1F5e60b8C3AE7c4e370792Da48C80f6f6FeE';  // FLX
 const GAME_ADDRESS = '0x3BD28Cc0D2Cd26E300b399224bE397537fBa7b86';  // FleetX
+const POOL_ADDRESS = '0xcd5343EEa57D16F845700D39119c495660871f44';  // pool WLD/FLX en Uniswap v3
+const SWAP_ADDRESS = '0x0000000000000000000000000000000000000000';  // ← FleetSwap.sol, al desplegarlo
+const SLIPPAGE     = 0.05;   // 5% de tolerancia: el pool es pequeño y se mueve
 
 let lastMiniKitError = null;
 const hex = n => Array.from({length:n},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
@@ -1299,6 +1319,27 @@ async function readView(name, args){
 
 /* Llama al contrato. Si hace falta aprobar un token, el approve viaja en la
    MISMA transacción combinada: una sola firma para el jugador. */
+async function callContract(target, sig, types, args, approveToken, approveWei){
+  if(!walletReady()) return false;
+  const mk = getMK();
+  try{
+    const txs = [];
+    if(approveToken && approveWei){
+      txs.push({ to: lc(approveToken),
+                 data: encodeCall('approve(address,uint256)',['address','uint256'],[target, approveWei]) });
+    }
+    txs.push({ to: lc(target), data: encodeCall(sig, types, args) });
+    const result = await mk.sendTransaction({ chainId: CHAIN_ID, transactions: txs });
+    const ok = isTxOk(result);
+    if(!ok) lastMiniKitError = txError(result, null);
+    return ok;
+  }catch(e){
+    lastMiniKitError = txError(null, e);
+    console.error('callContract:', e);
+    return false;
+  }
+}
+
 async function callGame(fnName, args, approveToken, approveAmount){
   if(!walletReady()) return false;
   const mk = getMK(), fn = FN[fnName];
@@ -1306,7 +1347,7 @@ async function callGame(fnName, args, approveToken, approveAmount){
   try{
     const txs = [];
     if(approveToken && approveAmount){
-      const wei = ethers.parseUnits(String(approveAmount), 18);
+      const wei = ethers.parseUnits(String(Math.ceil(approveAmount)), 18);
       txs.push({ to: lc(approveToken),
                  data: encodeCall('approve(address,uint256)',['address','uint256'],[GAME_ADDRESS, wei]) });
     }
@@ -1337,6 +1378,75 @@ async function readGame(signature, types, values, outTypes){
   if(!r || r === '0x') return null;
   try{ return ethers.AbiCoder.defaultAbiCoder().decode(outTypes, r); }
   catch(e){ console.error('decode:', signature, e); return null; }
+}
+
+/* =====================================================================
+   MERCADO — compra y venta de FLX contra el pool, sin salir de la app
+   ===================================================================== */
+const MK = { price:0, fee:0.01, t0:'', t1:'', ready:false, dir:'buy', amount:'' };
+
+async function loadMarket(){
+  try{
+    const r = await rpcCall(lc(POOL_ADDRESS), encodeCall('slot0()', [], []));
+    if(!r || r === '0x') return;
+    const d = ethers.AbiCoder.defaultAbiCoder().decode(
+      ['uint160','int24','uint16','uint16','uint16','uint8','bool'], r);
+    const sq = Number(d[0]) / 2**96;
+    MK.price = sq*sq;                       // token1 por token0 = FLX por WLD
+    const f = await rpcCall(lc(POOL_ADDRESS), encodeCall('fee()', [], []));
+    if(f && f !== '0x') MK.fee = Number(BigInt(f))/1e6;
+    MK.ready = MK.price > 0;
+    renderMarket();
+  }catch(e){ console.error('loadMarket:', e); }
+}
+
+/* WLD (0x2cFc…) va antes que FLX (0x330e…), así que WLD es token0 */
+const WLD_IS_T0 = lc(WLD_ADDRESS) < lc(FLX_ADDRESS);
+function quote(amount, dir){
+  if(!MK.ready || !amount) return 0;
+  const net = 1 - MK.fee;
+  const flxPerWld = WLD_IS_T0 ? MK.price : 1/MK.price;
+  return dir === 'buy' ? amount * flxPerWld * net : amount / flxPerWld * net;
+}
+
+function renderMarket(){
+  const buy = MK.dir === 'buy';
+  const bal = buy ? S.wld : S.flx;
+  const amt = parseFloat(MK.amount) || 0;
+  const out = quote(amt, MK.dir);
+  $('#mk-buy').classList.toggle('teal', buy);
+  $('#mk-sell').classList.toggle('teal', !buy);
+  $('#mk-in-label').textContent  = buy ? 'Pagas en WLD' : 'Vendes en FLX';
+  $('#mk-out-label').textContent = buy ? 'Recibes FLX' : 'Recibes WLD';
+  $('#mk-bal').textContent = 'Tienes ' + (buy ? fmtW(S.wld)+' WLD' : fmt(S.flx)+' FLX');
+  $('#mk-out').textContent = MK.ready ? (buy ? fmt(out)+' FLX' : fmtW(out)+' WLD') : '—';
+  $('#mk-rate').textContent = MK.ready
+    ? '1 WLD = ' + fmt(WLD_IS_T0 ? MK.price : 1/MK.price) + ' FLX · comisión ' + (MK.fee*100).toFixed(1) + '%'
+    : 'Leyendo el pool…';
+  $('#btn-swap').disabled = !MK.ready || amt <= 0 || amt > bal
+    || SWAP_ADDRESS === '0x0000000000000000000000000000000000000000';
+}
+
+async function doSwap(){
+  const amt = parseFloat(MK.amount) || 0;
+  if(amt <= 0) return;
+  if(SWAP_ADDRESS === '0x0000000000000000000000000000000000000000')
+    return toast('Falta desplegar FleetSwap', true);
+
+  const buy   = MK.dir === 'buy';
+  const inTok = buy ? WLD_ADDRESS : FLX_ADDRESS;
+  const zeroForOne = buy ? WLD_IS_T0 : !WLD_IS_T0;
+  const amountIn = ethers.parseUnits(String(amt), 18);
+  const minOut   = ethers.parseUnits(String(Math.max(0, quote(amt, MK.dir) * (1-SLIPPAGE)).toFixed(6)), 18);
+
+  await withTx(buy ? 'Comprando FLX' : 'Vendiendo FLX', () => callContract(
+    SWAP_ADDRESS,
+    'swapExactIn(bool,uint256,uint256)', ['bool','uint256','uint256'],
+    [zeroForOne, amountIn, minOut],
+    inTok, amountIn
+  ));
+  MK.amount = ''; $('#mk-amount').value = '';
+  loadMarket();
 }
 
 /* ---- Conexión de wallet ---- */
@@ -1431,7 +1541,9 @@ $('#btn-create').addEventListener('click', () => {
     buildSkyline(); renderAll(); renderClock();
     requestAnimationFrame(frame);
     await loadChain();                       // primera foto de la cadena
-    setInterval(loadChain, REFRESH);         // y se refresca sola
+    await loadMarket();                      // precio del pool
+    setInterval(loadChain, REFRESH);         // y se refrescan solos
+    setInterval(loadMarket, REFRESH);
     setInterval(() => { project(); liveUI(); renderClock(); }, 200);
     if(!S.lic) setTimeout(()=>toast('Empieza sacando la licencia Tipo A'), 800);
   });
