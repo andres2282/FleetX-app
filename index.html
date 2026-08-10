@@ -460,15 +460,6 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         </div>
       </div>
 
-      <div class="eyebrow">Conexión</div>
-      <div class="card" style="font-size:12px;line-height:1.8">
-        <div>Wallet <b class="mono" id="dg-addr" style="font-size:11px">—</b></div>
-        <div>Nodo <b class="mono" id="dg-rpc" style="font-size:11px">—</b></div>
-        <div>Última lectura <b id="dg-read">—</b></div>
-        <div id="dg-err" style="color:var(--danger)"></div>
-        <div class="row"><button class="btn ghost sm" data-act="reload" style="flex:1">Volver a leer</button></div>
-      </div>
-
       <div class="eyebrow">Próximas fases</div>
       <div class="grid2">
         <div class="card"><div class="display" style="font-size:15px">Misiones</div><div style="font-size:12px;color:var(--muted);margin:4px 0 7px">Objetivos con recompensa</div><span class="soon">Fase 2</span></div>
@@ -798,10 +789,6 @@ function renderBank(){
 
 function renderCoop(){
   const li = levelInfo(), next = LEVELS.find(l => l.lvl === li.lvl+1);
-  $('#dg-addr').textContent = WALLET.address || 'sin conectar';
-  $('#dg-rpc').textContent  = RPCS[rpcOk].replace('https://','');
-  $('#dg-read').textContent = S.loaded ? new Date(S.lastRead).toLocaleTimeString('es-ES') : 'nunca';
-  $('#dg-err').textContent  = lastRpcError ? 'Error: ' + lastRpcError : '';
   if(!$('#c-avatar').firstChild) $('#c-avatar').innerHTML = `<img src="${ART.logo}" alt="" style="width:100%;height:100%;object-fit:contain">`;
   $('#c-name').textContent = S.coop;
   $('#c-owner').textContent = S.owner + ' · ' + S.city;
@@ -1524,6 +1511,11 @@ async function connectWallet(){
     btn.textContent = 'Conectada'; btn.classList.add('ghost');
     $('#btn-create').disabled = false;
     S.owner = '@' + WALLET.username;
+    // Si ya creó su cooperativa antes, no se le vuelve a preguntar
+    if(store.get('coop')){
+      saveCoop(store.get('coop'), store.get('city') || $('#f-city').value);
+      return enterApp();
+    }
 
     // Si el username no vino en el payload, se resuelve por dirección aparte.
     if(!(mk.user && mk.user.username) && typeof mk.getUserByAddress === 'function'){
@@ -1543,39 +1535,61 @@ async function connectWallet(){
 $('#btn-wallet').addEventListener('click', connectWallet);
 $('#btn-create').disabled = true;
 
+/* La cooperativa se guarda en el propio teléfono, así que solo se crea una vez.
+   Si el navegador no permite almacenamiento, se sigue funcionando sin recordar. */
+const store = {
+  get(k){ try{ return localStorage.getItem('fleetx.'+k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem('fleetx.'+k, v); }catch(e){} }
+};
+
+async function enterApp(){
+  const ov = $('#onboarding');
+  if(ov) ov.remove();
+  $('#app').hidden = false;
+  buildSkyline(); renderAll(); renderClock();
+  requestAnimationFrame(frame);
+  await loadChain();                       // primera foto de la cadena
+  await loadMarket();                      // precio del pool
+  setInterval(loadChain, REFRESH);         // y se refrescan solos
+  setInterval(loadMarket, REFRESH);
+  setInterval(() => { project(); liveUI(); renderClock(); }, 200);
+  if(!S.lic) setTimeout(()=>toast('Empieza sacando la licencia Tipo A'), 800);
+}
+
+function saveCoop(coop, city){
+  S.coop = coop; S.city = city; S.owner = '@' + WALLET.username;
+  store.set('coop', coop); store.set('city', city);
+}
+
+/* Al abrir, se recupera lo guardado y se rellena el formulario */
+(function restore(){
+  const c = store.get('coop'), city = store.get('city');
+  if(c) $('#f-coop').value = c;
+  if(city) $('#f-city').value = city;
+})();
+
 $('#btn-create').addEventListener('click', () => {
-  const coop = $('#f-coop').value.trim() || 'Transportes Nova';
   if(!WALLET.username) return toast('Conecta primero tu wallet', true);
-  const owner = '@' + WALLET.username;
-  S.coop=coop; S.owner=owner; S.city=$('#f-city').value;
+  saveCoop($('#f-coop').value.trim() || 'Transportes Nova', $('#f-city').value);
+
   const ov = $('#onboarding');
   ov.innerHTML = `<div class="inner">
     <img src="${ART.logo}" alt="" style="width:96px;display:block;margin:0 auto 6px">
     <div class="kicker">Cooperativa creada</div>
-    <h1>${coop}</h1>
-    <p class="lead">${owner} · ${S.city}</p>
+    <h1>${S.coop}</h1>
+    <p class="lead">${S.owner} · ${S.city}</p>
     <div class="brief">
       <h3>Cómo funciona el dinero</h3>
       <p><b style="color:var(--paper)">WLD</b> saca las licencias de conducir, que deciden qué vehículos puedes manejar.
-      <b style="color:var(--credit)">FLX</b> compra vehículos, gasolina, turbo y mejoras.
+      <b style="color:var(--signal)">FLX</b> compra vehículos, gasolina, turbo y mejoras.
       Tus vehículos producen <b style="color:var(--signal)">créditos</b>, y esos créditos se cambian por FLX en el banco.</p>
     </div>
     <div class="brief">
       <h3>Tu primera misión</h3>
-      <p>Saca la licencia Tipo A por 2,5 WLD (~0,75 $) y compra tu primer taxi urbano por 1,67M FLX (~1,50 $). Necesitas FLX: se compra en Uniswap, desde la pantalla del banco.</p>
+      <p>Saca la licencia Tipo A por 2,5 WLD (~0,75 $) y compra tu primer taxi urbano por 1,67M FLX (~1,50 $). El FLX se compra en el mercado, dentro del banco.</p>
     </div>
     <button class="btn" id="btn-enter" style="margin-top:18px">Entrar al panel</button></div>`;
-  $('#btn-enter').addEventListener('click', async () => {
-    ov.remove(); $('#app').hidden = false;
-    buildSkyline(); renderAll(); renderClock();
-    requestAnimationFrame(frame);
-    await loadChain();                       // primera foto de la cadena
-    await loadMarket();                      // precio del pool
-    setInterval(loadChain, REFRESH);         // y se refrescan solos
-    setInterval(loadMarket, REFRESH);
-    setInterval(() => { project(); liveUI(); renderClock(); }, 200);
-    if(!S.lic) setTimeout(()=>toast('Empieza sacando la licencia Tipo A'), 800);
-  });
+  $('#btn-enter').addEventListener('click', enterApp);
 });
 </script>
 
