@@ -367,8 +367,9 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
     <section class="screen" id="s-shop">
       <div class="eyebrow">Tienda de vehículos <span class="hint">Precios en FLX</span></div>
       <div class="card" style="margin-bottom:12px;font-size:12.5px;color:var(--muted)">
-        Cada vehículo devuelve lo invertido en <b style="color:var(--signal)">30 días</b> trabajando sin
-        parar, ya descontando gasolina y taller. Después produce un 25% menos cada mes.
+        En <b style="color:var(--signal)">un mes</b> recuperas lo que invertiste, ya descontando gasolina
+        y taller. A partir de ahí todo es ganancia. El vehículo se desvaloriza con el uso, así que llegará
+        el momento de renovarlo.
       </div>
       <div id="shop-list"></div>
       <div style="height:26px"></div>
@@ -428,18 +429,22 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         <div>🌐 <b>WLD</b> — licencias de ciudad y compra de FLX</div>
         <div>⚙️ <b style="color:var(--signal)">CR</b> — lo que producen los vehículos; también paga el taller</div>
         <div>🪙 <b style="color:var(--signal)">FLX</b> — vehículos, gasolina, turbo y mejoras</div>
-        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Cada vehículo devuelve su precio en el primer mes
-        y después produce un 25% menos cada mes: por eso la flota se renueva.</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Cada vehículo devuelve su precio el primer mes;
+        de ahí en adelante es ganancia. Con el uso se desvaloriza, y llega un punto en que conviene renovarlo.</div>
       </div>
 
       <div class="eyebrow">Caja</div>
       <div class="card ledger">
-        <div class="li"><span>Créditos ya liquidados</span><b id="lg-total">0</b></div>
-        <div class="li"><span>Producidos sin liquidar</span><b id="lg-flx">0</b></div>
+        <div class="li"><span>Créditos acumulados</span><b id="lg-total">0</b></div>
+        <div class="li"><span>Valen ahora mismo</span><b id="lg-flx">0</b></div>
         <div class="li"><span>Vehículos en la flota</span><b id="lg-veh">0</b></div>
         <div class="li"><span>Tanquear toda la flota</span><b id="lg-fuel">0</b></div>
         <div class="li"><span>Taller completo</span><b id="lg-rep">0</b></div>
-        <div class="li" style="border:0"><span>Horas trabajadas</span><b id="lg-wld">0</b></div>
+        <div class="li" style="border:0"><span>Horas registradas en cadena</span><b id="lg-wld">0</b></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px">
+        Las horas y los créditos se apuntan en la cadena cuando cobras o tocas la flota. Mientras tanto
+        la app los calcula sola, con la misma fórmula del contrato.
       </div>
       <div style="height:26px"></div>
     </section>
@@ -743,8 +748,8 @@ function renderShop(){
         <div class="sp">Tanque ${c.tank} gal (24 h) · taller cada 6 días</div>
         ${locked?`<div class="lock">🔒 Requiere licencia ${l.name} · ${fmtW(l.wld)} WLD</div>`
         :`<div class="price">${fmt(c.price)} FLX</div>
-          <div class="roi">Se paga solo en ${roiDays(c)} días · ${fmt(netDay(c))} FLX/día netos</div>
-          <div class="sp" style="color:var(--muted)">Después baja ${DECAY*100}% de producción cada mes</div>`}
+          <div class="roi">Recuperas la inversión en ${roiDays(c)} días · ${fmt(netDay(c))} FLX/día netos</div>
+`}
       </div>
       ${locked?'':`<button class="btn sm" data-act="buy" data-id="${c.id}" style="flex:none;width:auto">Comprar</button>`}
     </article>`;
@@ -788,8 +793,8 @@ function renderBank(){
     ? `Puedes cambiar ${fmt(lots*CR_FLX)} CR por ${fmt(lots)} ${TOKEN}`
     : `Faltan ${fmtCR(CR_FLX-rest)} CR para el próximo FLX`;
   $('#btn-cash').disabled = lots<1;
-  $('#lg-total').textContent = fmtCR(S.crBase)+' CR';
-  $('#lg-flx').textContent   = fmtCR(S.cr - S.crBase)+' CR';
+  $('#lg-total').textContent = fmtCR(S.cr)+' CR';
+  $('#lg-flx').textContent   = fmt(S.cr/CR_FLX)+' FLX';
   $('#lg-veh').textContent   = S.fleet.length + (S.fleet.length===1?' vehículo':' vehículos');
   $('#lg-fuel').textContent  = fmt(opTotals().fuel)+' FLX';
   $('#lg-rep').textContent   = fmt(opTotals().fix)+' CR';
@@ -1179,24 +1184,19 @@ function zoneSheet(id){
 
 function infoSheet(id){
   const v = S.fleet.find(x=>x.id===+id), c = spec(v);
-  const cost = costDay(c);
-  let rows='', acc=0, life=0;
-  for(let m=0; m<8; m++){
-    const f = Math.pow(1-DECAY,m);
-    const net = c.crH*zoneOf(v).mult*boost(v)*f*UPTIME/CR_FLX - cost;
-    if(net>0){ acc += net*30; life = m+1; }
-    rows += `<div class="li" style="${m===ageM(v)?'color:var(--paper)':''}">
-      <span>${m===ageM(v)?'▸ ':''}Mes ${m+1} · ${Math.round(f*100)}% producción</span>
-      <b style="color:${net>0?'var(--credit)':'var(--danger)'}">${net>0?'+':''}${fmt(net)} FLX/día</b></div>`;
-  }
+  const bruto = crH(v)*UPTIME, gas = c.galH*UPTIME*GAL_FLX, mant = c.repair/6;
   sheet(`<h2>${c.name}</h2>
-    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">
-      Recupera los ${fmt(c.price)} FLX en su primer mes. A partir de ahí pierde un ${DECAY*100}% de
-      producción cada mes, mientras la gasolina y el taller siguen costando lo mismo.</div>
-    <div class="ledger">${rows}
-      <div class="li" style="border:0;margin-top:6px"><span>Vida rentable</span>
-        <b style="color:var(--signal)">${life} meses · ${(acc/c.price).toFixed(1)}× lo invertido</b></div>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Cuentas de un día completo de trabajo</div>
+    <div class="ledger">
+      <div class="li"><span>Producción bruta</span><b>${fmt(bruto)} CR</b></div>
+      <div class="li"><span>Gasolina (1 tanqueada de ${c.tank} gal)</span><b style="color:var(--danger)">−${fmt(gas)} FLX</b></div>
+      <div class="li"><span>Taller (1 vez cada 6 días)</span><b style="color:var(--danger)">−${fmt(mant)} CR/día</b></div>
+      <div class="li"><span>Beneficio neto</span><b style="color:var(--signal)">${fmt(bruto/CR_FLX - gas - mant/CR_FLX)} FLX</b></div>
+      <div class="li" style="border:0"><span>Inversión recuperada en</span><b style="color:var(--signal)">${roiDays(c)} días</b></div>
     </div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:10px">
+      Pasado el primer mes todo es ganancia. El vehículo se desvaloriza con el uso y llegará el momento
+      de renovarlo por uno nuevo.</div>
     <button class="btn ghost" style="margin-top:12px" data-act="close">Cerrar</button>`);
 }
 
