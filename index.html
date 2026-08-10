@@ -460,6 +460,15 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         </div>
       </div>
 
+      <div class="eyebrow">Conexión</div>
+      <div class="card" style="font-size:12px;line-height:1.8">
+        <div>Wallet <b class="mono" id="dg-addr" style="font-size:11px">—</b></div>
+        <div>Nodo <b class="mono" id="dg-rpc" style="font-size:11px">—</b></div>
+        <div>Última lectura <b id="dg-read">—</b></div>
+        <div id="dg-err" style="color:var(--danger)"></div>
+        <div class="row"><button class="btn ghost sm" data-act="reload" style="flex:1">Volver a leer</button></div>
+      </div>
+
       <div class="eyebrow">Próximas fases</div>
       <div class="grid2">
         <div class="card"><div class="display" style="font-size:15px">Misiones</div><div style="font-size:12px;color:var(--muted);margin:4px 0 7px">Objetivos con recompensa</div><span class="soon">Fase 2</span></div>
@@ -788,6 +797,10 @@ function renderBank(){
 
 function renderCoop(){
   const li = levelInfo(), next = LEVELS.find(l => l.lvl === li.lvl+1);
+  $('#dg-addr').textContent = WALLET.address || 'sin conectar';
+  $('#dg-rpc').textContent  = RPCS[rpcOk].replace('https://','');
+  $('#dg-read').textContent = S.loaded ? new Date(S.lastRead).toLocaleTimeString('es-ES') : 'nunca';
+  $('#dg-err').textContent  = lastRpcError ? 'Error: ' + lastRpcError : '';
   if(!$('#c-avatar').firstChild) $('#c-avatar').innerHTML = `<img src="${ART.logo}" alt="" style="width:100%;height:100%;object-fit:contain">`;
   $('#c-name').textContent = S.coop;
   $('#c-owner').textContent = S.owner + ' · ' + S.city;
@@ -1135,7 +1148,7 @@ async function loadChain(){
     syncCars(); project(); renderAll();
   }catch(e){
     console.error('loadChain:', e);
-    toast('No se pudo leer la cadena', true);
+    toast('No se pudo leer la cadena: ' + (lastRpcError || e.message), true);
   }
 }
 
@@ -1244,7 +1257,15 @@ $('#brand').src = ART.logo;
    · las transacciones se codifican a mano con ethers (nada de ABI de alto nivel)
    ===================================================================== */
 const CHAIN_ID  = 480;
-const WORLD_RPC = 'https://worldchain-mainnet.g.alchemy.com/public';
+/* Varios nodos: dentro de World App alguno puede estar bloqueado o saturado,
+   así que se prueban en orden y se recuerda el que responde. */
+const RPCS = [
+  'https://worldchain-mainnet.g.alchemy.com/public',
+  'https://worldchain.drpc.org',
+  'https://480.rpc.thirdweb.com',
+  'https://worldchain-mainnet.gateway.tenderly.co'
+];
+let rpcOk = 0, lastRpcError = '';
 const WLD_ADDRESS  = '0x2cFc85d8E48F8EAB294be644d9E25C3030863003';
 const FLX_ADDRESS  = '0x330e1F5e60b8C3AE7c4e370792Da48C80f6f6FeE';  // FLX
 const GAME_ADDRESS = '0x3BD28Cc0D2Cd26E300b399224bE397537fBa7b86';  // FleetX
@@ -1365,13 +1386,20 @@ async function callGame(fnName, args, approveToken, approveAmount){
 
 /* Lectura de solo-vista: gratis, sin firma, por RPC directo */
 async function rpcCall(to, data){
-  try{
-    const res = await fetch(WORLD_RPC, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest']})});
-    const j = await res.json();
-    if(j.error){ console.error('rpc:', j.error); return null; }
-    return j.result;
-  }catch(e){ console.error('rpc red:', e.message); return null; }
+  for(let i = 0; i < RPCS.length; i++){
+    const idx = (rpcOk + i) % RPCS.length;
+    try{
+      const res = await fetch(RPCS[idx], {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest']})});
+      const j = await res.json();
+      if(j.error){ lastRpcError = j.error.message || 'error RPC'; continue; }
+      rpcOk = idx;                       // este nodo funciona: se usa primero la próxima vez
+      lastRpcError = '';
+      return j.result;
+    }catch(e){ lastRpcError = e.message || 'sin respuesta'; }
+  }
+  console.error('todos los RPC fallaron:', lastRpcError);
+  return null;
 }
 async function readGame(signature, types, values, outTypes){
   const r = await rpcCall(lc(GAME_ADDRESS), encodeCall(signature, types, values||[]));
