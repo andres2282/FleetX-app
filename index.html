@@ -602,8 +602,9 @@ const nextLic  = () => LICENSES[S.lic] || null;
 const canDrive = c => hasLic(c.lic);
 const zoneOpen = z => levelInfo().lvl >= z.lvl;
 const usd = w => (w*WLD_USD).toFixed(2).replace('.',',');
-const turboOn = v => v.turbo > S.t;
-const ageM    = v => Math.floor((S.t - (v.born||0))/MONTH_H);        // meses cumplidos
+const now     = () => Math.floor(Date.now()/1000);                   // tiempo real, en segundos
+const turboOn = v => v.turbo > now();
+const ageM    = v => Math.floor((now() - (v.born||now()))/MONTH_S);   // meses cumplidos
 const prodF   = v => Math.pow(1-DECAY, ageM(v));                     // producción que le queda
 const boost = v => 1 + 0.15*(v.level-1);
 const payTrip = v => spec(v).crH * (spec(v).cycle/60) * zoneOf(v).mult * boost(v) * prodF(v) * (turboOn(v)?TURBO_X:1);
