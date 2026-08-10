@@ -268,7 +268,7 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
     <img id="brand" alt="FleetX" style="width:108px;display:block;margin:0 auto 6px">
     <div class="kicker">City Transport</div>
     <h1>Crea tu cooperativa</h1>
-    <p class="lead">Tu propietario se lee de la wallet de World App. Empiezas con 10 WLD y 5.000 FLX de prueba.</p>
+    <p class="lead">Conecta tu wallet de World App. Todo lo que hagas aquí ocurre en World Chain: los vehículos son tuyos y el FLX es real.</p>
     <label for="f-coop">Nombre de la cooperativa</label>
     <input id="f-coop" maxlength="22" placeholder="Transportes Nova" autocomplete="off">
     <label>Propietario</label>
@@ -326,7 +326,7 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
       <div class="grid3">
         <div class="card metric"><div class="k">Activos</div><div class="v" id="m-active">0<span class="u">/3</span></div></div>
         <div class="card metric"><div class="k">Producción</div><div class="v" id="m-rate">0<span class="u">CR/h</span></div></div>
-        <div class="card metric"><div class="k">Viajes</div><div class="v" id="m-trips">0</div></div>
+        <div class="card metric"><div class="k">Horas</div><div class="v" id="m-trips">0</div></div>
       </div>
       <div class="grid2" style="margin-top:10px">
         <div class="card metric"><div class="k">Neto estimado</div><div class="v" id="m-net">0<span class="u">FLX/día</span></div></div>
@@ -344,7 +344,8 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
     </section>
 
     <section class="screen" id="s-fleet">
-      <div class="eyebrow">Mi flota <span class="hint" id="fleet-cap">0 / 3 plazas</span></div>
+      <div class="eyebrow">Mi flota
+        <span class="hint"><span id="fleet-cap">0 vehículos</span> · <button data-act="reload" style="color:var(--signal)">actualizar</button></span></div>
       <div class="card" id="fleet-ops" style="margin-bottom:12px">
         <div style="font-size:12.5px;color:var(--muted);margin-bottom:9px">
           Operaciones de garaje: se aplican a toda la flota de golpe, con <b style="color:var(--paper)">una sola firma</b>.
@@ -352,6 +353,10 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         <div class="row" style="margin:0">
           <button class="btn blue" data-act="fuelall" style="flex:1">Tanquear todo<small id="op-fuel">0 FLX</small></button>
           <button class="btn ghost" data-act="fixall" style="flex:1">Reparar todo<small id="op-fix">0 CR</small></button>
+        </div>
+        <div class="row">
+          <button class="btn ghost" data-act="workall" style="flex:1">Todos a trabajar</button>
+          <button class="btn ghost" data-act="stopall" style="flex:1">Recoger todos</button>
         </div>
       </div>
       <div id="fleet-list"></div>
@@ -398,14 +403,13 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
         <button class="btn teal" id="btn-cash">Cambiar créditos por FLX</button>
       </div>
 
-      <div class="eyebrow">Comprar FLX con WLD</div>
+      <div class="eyebrow">Conseguir FLX</div>
       <div class="card">
-        <div style="font-size:12.5px;color:var(--muted)">1 WLD = <b class="mono" style="color:var(--credit)" id="wld-rate">500</b> FLX (referencia: 1 WLD ≈ 0,30 $). Sirve para arrancar o para acelerar la expansión.</div>
-        <div class="row">
-          <button class="btn ghost sm" data-buyflx="1" style="flex:1">1 WLD<small style="display:block;font-size:10px;opacity:.7">0,30 $</small></button>
-          <button class="btn ghost sm" data-buyflx="5" style="flex:1">5 WLD<small style="display:block;font-size:10px;opacity:.7">1,50 $</small></button>
-          <button class="btn ghost sm" data-buyflx="10" style="flex:1">10 WLD<small style="display:block;font-size:10px;opacity:.7">3,00 $</small></button>
-        </div>
+        <div style="font-size:12.5px;color:var(--muted)">FLX se compra en el mercado. El pool está en
+        Uniswap sobre World Chain, emparejado con WLD.</div>
+        <div class="row"><a class="btn ghost sm" style="flex:1;text-decoration:none"
+          href="https://app.uniswap.org/swap?chain=worldchain&outputCurrency=0x330e1F5e60b8C3AE7c4e370792Da48C80f6f6FeE"
+          target="_blank" rel="noopener">Comprar FLX en Uniswap</a></div>
       </div>
 
       <div class="eyebrow">Cómo circula el dinero</div>
@@ -442,30 +446,6 @@ input:focus,select:focus{outline:none;border-color:var(--signal)}
             <span id="c-lvl">Nivel 1</span><span id="c-next">0 / 15 viajes</span></div>
           <div class="bar wear" style="margin-top:5px"><i id="c-bar" style="width:0%"></i></div>
           <div style="font-size:12px;color:var(--muted);margin-top:7px" id="c-unlock"></div>
-        </div>
-      </div>
-
-      <div class="eyebrow">Velocidad de la simulación</div>
-      <div class="card">
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:9px">
-          La economía está calculada en tiempo real. Para probarla sin esperar, acelera el reloj.
-        </div>
-        <div class="row" style="margin:0">
-          <button class="btn ghost sm spd" data-spd="1" style="flex:1">×1 real</button>
-          <button class="btn ghost sm spd" data-spd="60" style="flex:1">×60</button>
-          <button class="btn ghost sm spd" data-spd="600" style="flex:1">×600</button>
-        </div>
-      </div>
-
-      <div class="eyebrow">Saldo de pruebas</div>
-      <div class="card">
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:9px">
-          Solo para probar la maqueta: añade fondos ficticios sin pasar por la economía real.
-        </div>
-        <div class="row" style="margin:0">
-          <button class="btn ghost sm" data-top="wld" style="flex:1">+10 WLD</button>
-          <button class="btn ghost sm" data-top="flx" style="flex:1">+10.000 FLX</button>
-          <button class="btn ghost sm" data-top="cr" style="flex:1">+5.000 CR</button>
         </div>
       </div>
 
@@ -517,58 +497,53 @@ const ART = {
 /* =====================================================================
    1. CONFIG — la economía en una sola pantalla
    ===================================================================== */
-const TOKEN   = 'FLX';
-const CR_FLX  = 100;      // 100 créditos = 1 FLX
-const GAL_FLX = 0.3;      // precio de un galón de gasolina
-const WLD_FLX = 500;      // 1 WLD = 500 FLX
-const WLD_USD = 0.30;     // referencia: 1 WLD ≈ 0,30 $
-const WEAR_H  = 144;      // el mantenimiento aguanta 6 días de trabajo
-const ROI_DAYS = 30;      // el vehículo se paga solo en su primer mes
-const MONTH_H  = 24*30;   // un mes de juego
-const DECAY    = 0.25;    // y a partir de ahí pierde un 25% de producción cada mes
-const UPTIME  = 24;       // el vehículo trabaja mientras tenga gasolina
-const TURBO_H = 6;        // duración del turbo, en horas de juego
-const TURBO_X = 3;        // multiplicador de producción del turbo
-const START_WLD = 10;
-const START_FLX = 5000;   // saldo de pruebas
-let SPEED = 60;           // 1 segundo real = 60 segundos de juego
+const TOKEN    = 'FLX';
+const CR_FLX   = 100;        // 100 créditos = 1 FLX
+const GAL_FLX  = 210;        // precio de un galón, en FLX
+const WLD_USD  = 0.30;       // referencia: 1 WLD ~ 0,30 $
+const WEAR_H   = 144;        // el taller aguanta 6 días de trabajo
+const REPAIR_M = 1.2;        // reparación completa = 1,2 × precio, en CR
+const MONTH_S  = 30*24*3600; // un mes, en segundos reales
+const DECAY    = 0.25;       // -25% de producción cada mes
+const UPTIME   = 24;
+const TURBO_H  = 6;
+const TURBO_X  = 3;
+const REFRESH  = 30000;      // cada cuánto se relee la cadena, en ms
 
-/* precio en FLX · crH: créditos por hora · galH: galones por hora
-   wearH: horas hasta agotar el mantenimiento · repair: CR de reparación completa */
+/* Mismos números que FleetX.sol. Si cambian allí, cambian aquí. */
 const CATALOG = [
- {id:'taxi',   lic:'A', cat:'Transporte urbano', name:'Taxi urbano',        price:900,   crH:168,   galH:1,  cycle:4, cap:4,   w:66,  road:34, zone:'Centro'},
- {id:'taxip',  lic:'B', cat:'Transporte urbano', name:'Taxi premium',       price:2700,  crH:473,  galH:2,  cycle:4, cap:4,   w:70,  road:37, zone:'Centro'},
- {id:'van',    lic:'C', cat:'Transporte urbano', name:'Van urbana',         price:5400,  crH:915,  galH:3,  cycle:5, cap:9,   w:68,  road:28, zone:'Residencial'},
- {id:'sedan',  lic:'B', cat:'Ejecutivo',         name:'Sedán ejecutivo',    price:11000, crH:1801,  galH:4,  cycle:5, cap:3,   w:70,  road:38, zone:'Distrito financiero'},
- {id:'vanx',   lic:'C', cat:'Ejecutivo',         name:'Van ejecutiva',      price:18000, crH:2930, galH:6,  cycle:6, cap:7,   w:76,  road:30, zone:'Aeropuerto'},
- {id:'bus',    lic:'D', cat:'Transporte público',name:'Bus urbano',         price:27000, crH:4365, galH:8,  cycle:6, cap:32,  w:104, road:22, zone:'Centro'},
- {id:'truck',  lic:'C', cat:'Carga',             name:'Camioneta de carga', price:40000, crH:6411, galH:10, cycle:7, cap:800, w:88,  road:20, zone:'Zona industrial'},
- {id:'trailer',lic:'E', cat:'Carga',             name:'Tráiler',            price:63000, crH:10045, galH:14, cycle:8, cap:2400,w:124, road:14, zone:'Zona industrial'}
+ {id:'taxi',   t:0, lic:'A', cat:'Transporte urbano', name:'Taxi urbano',        price:1665000,   crH:266125,   galH:1,  cycle:4, cap:4,   w:66,  road:34, zone:'Centro'},
+ {id:'taxip',  t:1, lic:'B', cat:'Transporte urbano', name:'Taxi premium',       price:4995000,   crH:798375,   galH:3,  cycle:4, cap:4,   w:70,  road:37, zone:'Centro'},
+ {id:'van',    t:2, lic:'C', cat:'Transporte urbano', name:'Van urbana',         price:9990000,   crH:1596750,  galH:6,  cycle:5, cap:9,   w:68,  road:28, zone:'Residencial'},
+ {id:'sedan',  t:3, lic:'B', cat:'Ejecutivo',         name:'Sedán ejecutivo',    price:20350000,  crH:3247972,  galH:12, cycle:5, cap:3,   w:70,  road:38, zone:'Distrito financiero'},
+ {id:'vanx',   t:4, lic:'C', cat:'Ejecutivo',         name:'Van ejecutiva',      price:33300000,  crH:5322500,  galH:20, cycle:6, cap:7,   w:76,  road:30, zone:'Aeropuerto'},
+ {id:'bus',    t:5, lic:'D', cat:'Transporte público',name:'Bus urbano',         price:49950000,  crH:7983750,  galH:30, cycle:6, cap:32,  w:104, road:22, zone:'Centro'},
+ {id:'truck',  t:6, lic:'C', cat:'Carga',             name:'Camioneta de carga', price:74000000,  crH:11818444, galH:44, cycle:7, cap:800, w:88,  road:20, zone:'Zona industrial'},
+ {id:'trailer',t:7, lic:'E', cat:'Carga',             name:'Tráiler',            price:116550000, crH:18628750, galH:70, cycle:8, cap:2400,w:124, road:14, zone:'Zona industrial'}
 ];
-/* derivados: el tanque dura 24 h y la reparación completa cuesta 2× el precio, en créditos */
-CATALOG.forEach(c => { c.tank = c.galH*24; c.wearH = WEAR_H; c.repair = c.price*2; });
+CATALOG.forEach(c => { c.tank = c.galH*24; c.wearH = WEAR_H; c.repair = c.price*REPAIR_M; });
 
-/* Licencias de conducir: se compran en orden y cada una duplica el precio de la anterior */
 const LICENSES = [
- {id:'A', wld:2.5, name:'Tipo A', desc:'Vehículo liviano particular',        unlocks:['taxi']},
- {id:'B', wld:5,   name:'Tipo B', desc:'Auto ejecutivo y taxi premium',      unlocks:['taxip','sedan']},
- {id:'C', wld:10,  name:'Tipo C', desc:'Profesional: van y camioneta',       unlocks:['van','vanx','truck']},
- {id:'D', wld:20,  name:'Tipo D', desc:'Transporte público: buses',          unlocks:['bus']},
- {id:'E', wld:40,  name:'Tipo E', desc:'Carga pesada: tráiler',              unlocks:['trailer']}
+ {id:'A', wld:2.5, name:'Tipo A', desc:'Vehículo liviano particular',   unlocks:['taxi']},
+ {id:'B', wld:5,   name:'Tipo B', desc:'Auto ejecutivo y taxi premium', unlocks:['taxip','sedan']},
+ {id:'C', wld:10,  name:'Tipo C', desc:'Profesional: van y camioneta',  unlocks:['van','vanx','truck']},
+ {id:'D', wld:20,  name:'Tipo D', desc:'Transporte público: buses',     unlocks:['bus']},
+ {id:'E', wld:40,  name:'Tipo E', desc:'Carga pesada: tráiler',         unlocks:['trailer']}
 ];
 
+/* El índice de cada zona es el zoneId del contrato */
 const ZONES = [
- {name:'Centro',              icon:'🏙️', lvl:1, mult:1.00, demand:5, ideal:'Taxi · Van · Bus'},
- {name:'Residencial',         icon:'🏘️', lvl:1, mult:0.92, demand:4, ideal:'Taxi · Van'},
- {name:'Distrito financiero', icon:'🏢', lvl:2, mult:1.25, demand:4, ideal:'Ejecutivos'},
- {name:'Zona industrial',     icon:'🏭', lvl:2, mult:1.20, demand:3, ideal:'Carga'},
- {name:'Aeropuerto',          icon:'✈️', lvl:3, mult:1.35, demand:4, ideal:'Vans · Ejecutivos'},
- {name:'Zona turística',      icon:'🏖️', lvl:4, mult:1.45, demand:3, ideal:'Bus · Van ejecutiva'}
+ {z:0, name:'Centro',              icon:'🏙️', lvl:1, mult:1.00, demand:5, ideal:'Taxi · Van · Bus'},
+ {z:1, name:'Residencial',         icon:'🏘️', lvl:1, mult:0.92, demand:4, ideal:'Taxi · Van'},
+ {z:2, name:'Distrito financiero', icon:'🏢', lvl:2, mult:1.25, demand:4, ideal:'Ejecutivos'},
+ {z:3, name:'Zona industrial',     icon:'🏭', lvl:2, mult:1.20, demand:3, ideal:'Carga'},
+ {z:4, name:'Aeropuerto',          icon:'✈️', lvl:3, mult:1.35, demand:4, ideal:'Vans · Ejecutivos'},
+ {z:5, name:'Zona turística',      icon:'🏖️', lvl:4, mult:1.45, demand:3, ideal:'Bus · Van ejecutiva'}
 ];
 
+/* Horas trabajadas que hacen falta para cada nivel (igual que en el contrato) */
 const LEVELS = [
- {lvl:1,trips:0,slots:3},{lvl:2,trips:15,slots:5},{lvl:3,trips:45,slots:7},
- {lvl:4,trips:110,slots:10},{lvl:5,trips:240,slots:14}
+ {lvl:1,h:0},{lvl:2,h:120},{lvl:3,h:400},{lvl:4,h:1000},{lvl:5,h:2200}
 ];
 
 const PHASES = [
@@ -583,10 +558,13 @@ const PHASES = [
    2. STATE
    ===================================================================== */
 const S = {
-  coop:'', owner:'', avatar:'🚕', city:'',
-  wld:START_WLD, cr:0, flx:START_FLX,
-  lic:[], fleet:[], seq:1, trips:0, t:0, screen:'home',
-  totalCR:0, gotFLX:0, spentVeh:0, spentFuel:0, spentRep:0, spentWLD:0
+  coop:'', owner:'', city:'',
+  wld:0, flx:0, cr:0,          // saldos reales leídos de la cadena
+  crBase:0,                    // créditos ya liquidados en el contrato
+  lic:0,                       // licencias sacadas (0..5)
+  hours:0, level:1,
+  fleet:[], screen:'home',
+  loaded:false, busy:false, lastRead:0
 };
 
 /* =====================================================================
@@ -597,8 +575,7 @@ const fmt  = n => Math.floor(n).toLocaleString('es-ES');
 const fmtW = n => (Math.round(n*100)/100).toFixed(2);
 const fmtCR = (n,d=2) => n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
 const spec = v => CATALOG.find(c => c.id === v.type);
-const levelInfo = () => LEVELS.filter(l => S.trips >= l.trips).pop();
-const slots = () => levelInfo().slots;
+const levelInfo = () => LEVELS.filter(l => S.hours >= l.h).pop();
 const zoneOf = v => ZONES.find(z => z.name === v.zone);
 const hasLic   = id => S.lic.includes(id);
 const nextLic  = () => LICENSES[S.lic.length] || null;
@@ -616,7 +593,7 @@ const netNow  = v => crH(v)*UPTIME/CR_FLX - costDay(spec(v));        // benefici
 const netDay = c => (c.crH*UPTIME/CR_FLX) - (c.galH*UPTIME*GAL_FLX) - (c.repair/6/CR_FLX);
 const roiDays = c => Math.round(c.price / netDay(c));
 const turboCost = c => Math.round(c.price*0.012);
-const refuelCost = v => +( (spec(v).tank - v.fuel) * GAL_FLX ).toFixed(2);
+const refuelCost = v => Math.round((spec(v).tank - v.fuel) * GAL_FLX);
 const repairCost = v => Math.round(spec(v).repair * (100-v.wear)/100);
 const img = (id,k,cls='') => `<img class="${cls}" src="${ART[id+'.'+k]}" alt="" loading="lazy">`;
 
@@ -642,11 +619,11 @@ function renderTop(){
 
 function renderHome(){
   const on = S.fleet.filter(v => v.working);
-  $('#m-active').innerHTML = on.length + '<span class="u">/' + slots() + '</span>';
+  $('#m-active').innerHTML = on.length + '<span class="u">/' + S.fleet.length + '</span>';
   $('#m-rate').innerHTML = fmt(on.reduce((a,v)=>a+crH(v),0)) + '<span class="u">CR/h</span>';
-  $('#m-trips').textContent = fmt(S.trips);
+  $('#m-trips').textContent = fmt(S.hours);
   $('#m-net').innerHTML = fmt(S.fleet.reduce((a,v)=>a+netDay(spec(v)),0)) + '<span class="u">FLX/día</span>';
-  $('#m-rep').innerHTML = Math.min(100, Math.floor(40+S.trips*0.6)) + '<span class="u">%</span>';
+  $('#m-rep').innerHTML = Math.min(100, Math.floor(40+S.hours*0.5)) + '<span class="u">%</span>';
   $('#street-empty').style.display = S.fleet.length ? 'none' : 'grid';
   $('#street-hint').textContent = S.fleet.length ? on.length+' de '+S.fleet.length+' en servicio' : 'sin unidades';
 
@@ -663,22 +640,21 @@ function renderHome(){
 }
 
 function renderClock(){
-  const d = Math.floor(S.t/24)+1, h = Math.floor(S.t%24), m = Math.floor((S.t%1)*60);
-  $('#clock').textContent = `Día ${d} · ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}` +
-    (SPEED>1 ? ` · ×${SPEED}` : '');
+  const s = Math.max(0, Math.round((Date.now()-S.lastRead)/1000));
+  $('#clock').textContent = S.loaded ? 'En cadena · leído hace '+s+' s' : 'Conectando…';
 }
 
 function renderFleet(){
-  $('#fleet-cap').textContent = S.fleet.length + ' / ' + slots() + ' plazas';
+  $('#fleet-cap').textContent = S.fleet.length + (S.fleet.length===1?' vehículo':' vehículos');
   $('#fleet-ops').style.display = S.fleet.length ? '' : 'none';
   const t = opTotals();
-  $('#op-fuel').textContent = t.fuel.toFixed(2)+' FLX';
+  $('#op-fuel').textContent = fmt(t.fuel)+' FLX';
   $('#op-fix').textContent  = fmt(t.fix)+' CR';
   const box = $('#fleet-list');
   if(!S.fleet.length){
     box.innerHTML = `<div class="card" style="text-align:center;padding:24px 16px">
       <h3 style="font-size:17px">Garaje vacío</h3>
-      <p style="color:var(--muted);font-size:13px;margin:6px 0 0">El taxi urbano cuesta 900 FLX y se paga solo en unos 90 días.</p></div>`;
+      <p style="color:var(--muted);font-size:13px;margin:6px 0 0">El taxi urbano cuesta 1,67M FLX (~1,50 $) y se paga solo en un mes.</p></div>`;
     return;
   }
   box.innerHTML = S.fleet.map(v => {
@@ -694,7 +670,7 @@ function renderFleet(){
         <div class="thumb">${img(c.id,'s')}</div>
         <div class="ttl">
           <h3>${c.name}</h3>
-          <div class="meta">Nivel ${v.level} · ${v.zone} · ${v.trips} viajes</div>
+          <div class="meta">Nivel ${v.level} · ${v.zone}</div>
           <div class="meta">Mes ${ageM(v)+1} de vida · producción al <b style="color:${prodF(v)<.5?'var(--danger)':'var(--signal)'}">${Math.round(prodF(v)*100)}%</b>${netNow(v)<=0?' · <b style="color:var(--danger)">ya no cubre gastos</b>':''}</div>
           <div class="status"><i class="dot ${dot}"></i>${st}
             ${turboOn(v)?`<span class="turbo-chip">TURBO ×${TURBO_X}</span>`:''}</div>
@@ -721,7 +697,7 @@ function renderFleet(){
           ${v.working?'Detener':'Poner a trabajar'}</button>
       </div>
       <div class="acts">
-        <button class="btn blue" data-act="fuel" data-id="${v.id}">Repostar<small>${refuelCost(v)} FLX</small></button>
+        <button class="btn blue" data-act="fuel" data-id="${v.id}">Repostar<small>${fmt(refuelCost(v))} FLX</small></button>
         <button class="btn ghost" data-act="fix" data-id="${v.id}">Taller<small>${fmt(repairCost(v))} CR</small></button>
         <button class="btn ghost" data-act="turbo" data-id="${v.id}">Turbo ×${TURBO_X}<small>${fmt(turboCost(c))} FLX</small></button>
         <button class="btn ghost" data-act="zone" data-id="${v.id}">Zona<small>${v.zone.split(' ')[0]}</small></button>
@@ -791,12 +767,12 @@ function renderBank(){
     ? `Puedes cambiar ${fmt(lots*CR_FLX)} CR por ${fmt(lots)} ${TOKEN}`
     : `Faltan ${fmtCR(CR_FLX-rest)} CR para el próximo FLX`;
   $('#btn-cash').disabled = lots<1;
-  $('#lg-total').textContent = fmtCR(S.totalCR)+' CR';
-  $('#lg-flx').textContent   = fmt(S.gotFLX)+' FLX';
-  $('#lg-veh').textContent   = fmt(S.spentVeh)+' FLX';
-  $('#lg-fuel').textContent  = fmt(S.spentFuel)+' FLX';
-  $('#lg-rep').textContent   = fmt(S.spentRep)+' CR';
-  $('#lg-wld').textContent   = fmtW(S.spentWLD)+' WLD';
+  $('#lg-total').textContent = fmtCR(S.crBase)+' CR';
+  $('#lg-flx').textContent   = fmtCR(S.cr - S.crBase)+' CR';
+  $('#lg-veh').textContent   = S.fleet.length + (S.fleet.length===1?' vehículo':' vehículos');
+  $('#lg-fuel').textContent  = fmt(opTotals().fuel)+' FLX';
+  $('#lg-rep').textContent   = fmt(opTotals().fix)+' CR';
+  $('#lg-wld').textContent   = fmt(S.hours)+' h';
 }
 
 function renderCoop(){
@@ -806,59 +782,77 @@ function renderCoop(){
   $('#c-owner').textContent = S.owner + ' · ' + S.city;
   $('#c-lvl').textContent = 'Nivel ' + li.lvl;
   if(next){
-    $('#c-next').textContent = S.trips+' / '+next.trips+' viajes';
-    $('#c-bar').style.width = Math.min(100,(S.trips-li.trips)/(next.trips-li.trips)*100)+'%';
-    $('#c-unlock').textContent = `Al subir a nivel ${next.lvl}: ${next.slots} plazas de garaje y nuevos vehículos.`;
+    $('#c-next').textContent = fmt(S.hours)+' / '+next.h+' horas';
+    $('#c-bar').style.width = Math.min(100,(S.hours-li.h)/(next.h-li.h)*100)+'%';
+    $('#c-unlock').textContent = `Al subir a nivel ${next.lvl} se abren zonas nuevas con mejor tarifa.`;
   } else { $('#c-next').textContent='Nivel máximo'; $('#c-bar').style.width='100%'; }
-  document.querySelectorAll('.spd').forEach(b => b.classList.toggle('teal', +b.dataset.spd===SPEED));
-}
+  }
 
 const renderAll = () => { renderTop(); renderHome(); renderFleet(); renderShop(); renderCity(); renderBank(); renderCoop(); };
 
 /* =====================================================================
    5. ENGINE
    ===================================================================== */
-function stop(v, why){
-  v.working = false;
-  const el = document.getElementById('car-'+v.id);
-  if(el) el.classList.add('stopped');
-  toast(spec(v).name + ': ' + why, true);
-  renderFleet(); renderHome();
+/* La cadena guarda una foto: fuel, wearLeft y lastSync de cada vehículo.
+   Entre lecturas el cliente proyecta esa foto con la misma fórmula del
+   contrato, así el contador sube en vivo sin gastar una sola llamada. */
+function project(){
+  const t = now();
+  let cr = S.crBase;
+  S.fleet.forEach(v => {
+    const c = spec(v);
+    if(!v.working){
+      v.fuel = v.fuel0; v.wear = v.wear0/(WEAR_H*3600)*100; v.pending = 0; return;
+    }
+    const elapsed  = Math.max(0, t - v.sync);
+    const fuelSecs = v.fuel0 / c.galH * 3600;
+    const worked   = Math.min(elapsed, fuelSecs, v.wear0);
+    v.fuel    = Math.max(0, v.fuel0 - worked*c.galH/3600);
+    v.wear    = Math.max(0, (v.wear0 - worked)/(WEAR_H*3600)*100);
+    v.stalled = worked < elapsed;
+    v.pending = produced(v, worked);
+    cr += v.pending;
+  });
+  S.cr = cr;
 }
 
-function tick(dtReal){
-  const gh = dtReal * SPEED / 3600;          // horas de juego transcurridas
-  S.t += gh;
+/* Misma integración mes a mes que _produced() en Solidity */
+function produced(v, workedSecs){
+  if(workedSecs <= 0) return 0;
+  const c = spec(v);
+  const rate = c.crH * zoneOf(v).mult * boost(v);
+  let cursor = v.sync, end = v.sync + workedSecs, cr = 0;
+  while(cursor < end){
+    const months   = Math.floor((cursor - v.born)/MONTH_S);
+    const monthEnd = v.born + (months+1)*MONTH_S;
+    const sliceEnd = Math.min(monthEnd, end);
+    const factor   = Math.pow(1-DECAY, months);
+    cr += rate * (sliceEnd - cursor) / 3600 * factor;
+    if(v.turbo > cursor){
+      const bEnd = Math.min(v.turbo, sliceEnd);
+      cr += rate * (bEnd - cursor) / 3600 * (TURBO_X-1) * factor;
+    }
+    cursor = sliceEnd;
+  }
+  return cr;
+}
+
+/* Los viajes de la calle son decorativos: la renta real es la de arriba */
+function tick(dt){
   let dirty = false;
   S.fleet.forEach(v => {
-    if(!v.working) return;
-    const c = spec(v);
-    v.fuel = Math.max(0, v.fuel - c.galH*gh);
-    v.wear = Math.max(0, v.wear - 100/c.wearH*gh);
-    if(v.fuel<=0)  return stop(v,'se quedó sin gasolina');
-    if(v.wear<=0)  return stop(v,'necesita taller');
-    const earned = crH(v)*gh;                 // los créditos entran de forma continua
-    S.cr += earned; S.totalCR += earned;
-    v.tripCR = (v.tripCR||0) + earned;
-    v.prog += gh*60/c.cycle;
-    let acc=0, idx=0;
+    if(!v.working || v.fuel <= 0 || v.wear <= 0) return;
+    v.prog = (v.prog||0) + dt/(spec(v).cycle*60);
+    let acc = 0, idx = 0;
     for(let i=0;i<PHASES.length;i++){ acc+=PHASES[i].f; if(v.prog<acc){ idx=i; break; } idx=i; }
-    if(idx!==v.phase){ v.phase=idx; if(PHASES[idx].id==='pay') finishTrip(v); dirty=true; }
-    if(v.prog>=1){ v.prog=0; v.phase=0; dirty=true; }
+    if(idx !== v.phase){
+      v.phase = idx;
+      if(PHASES[idx].id === 'pay') pop(v, crH(v)*spec(v).cycle/60, turboOn(v));
+      dirty = true;
+    }
+    if(v.prog >= 1){ v.prog = 0; v.phase = 0; dirty = true; }
   });
-  if(dirty && S.screen==='fleet') renderFleet();
-  renderClock();
-}
-
-function finishTrip(v){
-  const gain = Math.max(1, Math.round(v.tripCR||payTrip(v)));   // lo ya cobrado durante el viaje
-  v.tripCR = 0; S.trips++; v.trips++;
-  const before = levelInfo().lvl;
-  pop(v, gain, turboOn(v));
-  renderTop(); renderHome();
-  if(S.screen==='bank') renderBank();
-  if(S.screen==='coop') renderCoop();
-  if(levelInfo().lvl > before){ toast('¡Nivel '+levelInfo().lvl+'! Más plazas y vehículos'); renderShop(); }
+  if(dirty && S.screen === 'fleet') renderFleet();
 }
 
 function buildSkyline(){
@@ -903,6 +897,8 @@ function pop(v,n,t){
 }
 function liveUI(){
   $('#t-cr').textContent = fmtCR(S.cr);
+  $('#t-flx').textContent = fmt(S.flx);
+  $('#t-wld').textContent = fmtW(S.wld);
   if(S.screen==='bank'){
     const lots = Math.floor(S.cr/CR_FLX), rest = S.cr%CR_FLX;
     $('#bank-cr').textContent = fmtCR(S.cr,3);
@@ -914,7 +910,7 @@ function liveUI(){
   }
   if(S.screen==='fleet'){
     const t = opTotals();
-    $('#op-fuel').textContent = t.fuel.toFixed(2)+' FLX';
+    $('#op-fuel').textContent = fmt(t.fuel)+' FLX';
     $('#op-fix').textContent  = fmt(t.fix)+' CR';
     S.fleet.forEach(v => {
       const el = document.getElementById('gauge-'+v.id); if(!el) return;
@@ -925,8 +921,7 @@ function liveUI(){
 function frame(ts){
   const dt = Math.min(0.1, (ts-(frame.last||ts))/1000); frame.last = ts;
   tick(dt);
-  if(!frame.ui || ts-frame.ui > 120){ frame.ui = ts; liveUI(); }
-  const k = Math.max(1, Math.min(1.6, SPEED/60));   // el reloj llega a ×600; la calle no
+  const k = 1;
   const W = $('#street').clientWidth || 480;
   const vis = S.fleet.slice(0, MAX_CARS);
   vis.forEach(v => {
@@ -958,100 +953,94 @@ function frame(ts){
 /* =====================================================================
    6. ACCIONES
    ===================================================================== */
+/* Todas las acciones firman en la cadena. Si la transacción falla o el
+   usuario la cancela, no se toca el estado: se vuelve a leer y punto. */
+async function withTx(label, fn){
+  if(!walletReady()) return toast('Conecta tu wallet de World App', true);
+  if(S.busy) return;
+  S.busy = true; toast(label + '…');
+  const ok = await fn();
+  S.busy = false;
+  if(ok){ toast(label + ' ✓'); await loadChain(); }
+  else   { toast(lastMiniKitError || 'La transacción no se completó', true); }
+  return ok;
+}
+
+const wei = n => ethers.parseUnits(String(Math.ceil(n)), 18);
+
 function buyLicense(id){
   const l = LICENSES.find(x=>x.id===id);
   if(hasLic(id)) return;
-  if(nextLic() && nextLic().id !== id) return toast('Antes tienes que sacar la licencia '+nextLic().name, true);
+  if(nextLic() && nextLic().id !== id) return toast('Antes saca la licencia '+nextLic().name, true);
   if(S.wld < l.wld) return toast('Te faltan '+fmtW(l.wld-S.wld)+' WLD', true);
-  S.wld -= l.wld; S.spentWLD += l.wld; S.lic.push(id);
-  flash($('#t-wld')); toast('Licencia '+l.name+' obtenida · '+fmtW(l.wld)+' WLD');
-  renderAll();
-}
-
-function buyFLX(wld){
-  if(S.wld < wld) return toast('No tienes '+wld+' WLD', true);
-  S.wld -= wld; S.flx += wld*WLD_FLX;
-  flash($('#t-flx')); toast(fmt(wld*WLD_FLX)+' FLX añadidos');
-  renderAll();
+  withTx('Licencia '+l.name, () => callGame('buyLicense', [], WLD_ADDRESS, l.wld));
 }
 
 function buy(id){
   const c = CATALOG.find(x=>x.id===id);
   if(!canDrive(c)) return toast('Necesitas la licencia '+LICENSES.find(x=>x.id===c.lic).name, true);
-  if(S.fleet.length >= slots()) return toast('Garaje lleno: '+slots()+' plazas', true);
   if(S.flx < c.price) return toast('Te faltan '+fmt(c.price-S.flx)+' FLX', true);
-  S.flx -= c.price; S.spentVeh += c.price;
-  const zone = zoneOpen(ZONES.find(z=>z.name===c.zone)) ? c.zone : ZONES.find(zoneOpen).name;
-  const v = {id:S.seq++, type:c.id, level:1, zone, born:S.t, working:false, fuel:c.tank, wear:100,
-             turbo:0, phase:0, prog:0, trips:0, x:Math.random()*70};
-  S.fleet.push(v); addCar(v);
-  flash($('#t-flx')); toast(c.name+' comprado · tanque lleno de regalo');
-  renderAll(); go('fleet');
+  const zone = zoneOpen(ZONES.find(z=>z.name===c.zone)) ? ZONES.find(z=>z.name===c.zone) : ZONES.find(zoneOpen);
+  withTx('Comprando '+c.name, () => callGame('buyVehicle', [c.t, zone.z], FLX_ADDRESS, c.price))
+    .then(ok => { if(ok) go('fleet'); });
 }
 
 function toggle(id){
-  const v = S.fleet.find(x=>x.id===+id), c = spec(v);
+  const v = S.fleet.find(x=>x.id===+id);
   if(!v.working){
     if(!zoneOpen(zoneOf(v))) return toast(v.zone+' se abre en nivel '+zoneOf(v).lvl, true);
     if(v.fuel<=0) return toast('Sin gasolina: reposta primero', true);
     if(v.wear<=0) return toast('Necesita pasar por el taller', true);
-    v.working=true; v.prog=0; v.phase=0;
-    toast(c.name+' en servicio');
-  } else { v.working=false; toast(c.name+' de vuelta al garaje'); }
-  renderFleet(); renderHome();
+  }
+  withTx(v.working ? 'Deteniendo' : 'Poniendo a trabajar',
+         () => callGame('setWorking', [v.id, !v.working]));
+}
+
+function workAll(on){
+  if(!S.fleet.length) return;
+  withTx(on ? 'Toda la flota a trabajar' : 'Recogiendo la flota',
+         () => callGame('workAll', [on, 0, 0]));
 }
 
 function opTotals(){
   const fuel = S.fleet.reduce((a,v)=>a+refuelCost(v),0);
   const fix  = S.fleet.reduce((a,v)=>a+repairCost(v),0);
-  return {fuel:+fuel.toFixed(2), fix};
+  return {fuel, fix};
 }
+
+/* UNA SOLA FIRMA para toda la flota */
 function refuelAll(){
   const {fuel} = opTotals();
   if(fuel<=0) return toast('Toda la flota tiene el tanque lleno');
   if(S.flx < fuel) return toast('Te faltan '+fmt(fuel-S.flx)+' FLX para tanquear todo', true);
-  const n = S.fleet.filter(v=>refuelCost(v)>0).length;
-  S.flx -= fuel; S.spentFuel += fuel;
-  S.fleet.forEach(v => v.fuel = spec(v).tank);
-  flash($('#t-flx')); toast(n+' vehículo'+(n===1?'':'s')+' tanqueado'+(n===1?'':'s')+' · '+fuel+' FLX');
-  renderFleet(); renderTop(); renderBank();
+  withTx('Tanqueando la flota', () => callGame('refuelAll', [0,0], FLX_ADDRESS, fuel*1.02));
 }
 function fixAll(){
   const {fix} = opTotals();
   if(fix<=0) return toast('Toda la flota está a punto');
-  if(S.cr < fix) return toast('Te faltan '+fmt(fix-S.cr)+' CR para el taller completo', true);
-  const n = S.fleet.filter(v=>repairCost(v)>0).length;
-  S.cr -= fix; S.spentRep += fix;
-  S.fleet.forEach(v => v.wear = 100);
-  flash($('#t-cr')); toast(n+' vehículo'+(n===1?'':'s')+' en punto · '+fmt(fix)+' CR');
-  renderFleet(); renderTop(); renderBank();
+  if(S.cr < fix) return toast('Te faltan '+fmt(fix-S.cr)+' CR para el taller', true);
+  withTx('Reparando la flota', () => callGame('repairAll', [0,0]));
 }
 
 function refuel(id){
   const v = S.fleet.find(x=>x.id===+id), cost = refuelCost(v);
   if(cost<=0) return toast('El tanque ya está lleno');
-  if(S.flx < cost) return toast('Te faltan '+fmt(cost-S.flx)+' FLX para la gasolina', true);
-  S.flx -= cost; S.spentFuel += cost; v.fuel = spec(v).tank;
-  flash($('#t-flx')); toast('Tanque lleno · '+cost+' FLX');
-  renderFleet(); renderTop(); renderBank();
+  if(S.flx < cost) return toast('Te faltan '+fmt(cost-S.flx)+' FLX', true);
+  withTx('Tanqueando', () => callGame('refuel', [v.id], FLX_ADDRESS, cost*1.02));
 }
 
 function fix(id){
   const v = S.fleet.find(x=>x.id===+id), cost = repairCost(v);
   if(cost<=0) return toast('No necesita taller');
-  if(S.cr < cost) return toast('Te faltan '+fmt(cost-S.cr)+' CR para el taller', true);
-  S.cr -= cost; S.spentRep += cost; v.wear = 100;
-  flash($('#t-cr')); toast('Mantenimiento al 100%');
-  renderFleet(); renderTop(); renderBank();
+  if(S.cr < cost) return toast('Te faltan '+fmt(cost-S.cr)+' CR', true);
+  withTx('Taller', () => callGame('repair', [v.id]));
 }
 
 function turbo(id){
   const v = S.fleet.find(x=>x.id===+id), cost = turboCost(spec(v));
   if(turboOn(v)) return toast('Ya tiene el turbo activo');
   if(S.flx < cost) return toast('Te faltan '+fmt(cost-S.flx)+' FLX', true);
-  S.flx -= cost; S.spentFuel += cost; v.turbo = S.t + TURBO_H;
-  flash($('#t-flx')); toast('Turbo ×'+TURBO_X+' durante '+TURBO_H+' horas');
-  renderFleet(); renderTop();
+  withTx('Turbo ×'+TURBO_X, () => callGame('turbo', [v.id], FLX_ADDRESS, cost));
 }
 
 function upgrade(id){
@@ -1059,27 +1048,92 @@ function upgrade(id){
   if(v.level>=5) return;
   const cost = upCost(v);
   if(S.flx < cost) return toast('Te faltan '+fmt(cost-S.flx)+' FLX', true);
-  S.flx -= cost; S.spentVeh += cost; v.level++;
-  flash($('#t-flx')); toast(spec(v).name+' nivel '+v.level+' · +15% producción');
-  renderFleet(); renderTop();
+  withTx('Mejorando a nivel '+(v.level+1), () => callGame('upgrade', [v.id], FLX_ADDRESS, cost));
 }
 
-function cash(){
-  const lots = Math.floor(S.cr/CR_FLX); if(lots<1) return;
-  const cr = lots*CR_FLX;
-  $('#fl1').textContent = fmt(cr)+' CR';
+function setZoneTx(id, zoneName){
+  const z = ZONES.find(x=>x.name===zoneName);
+  withTx('Cambiando a '+zoneName, () => callGame('setZone', [+id, z.z]));
+}
+
+/* El banco emite FLX: liquida toda la flota y cambia créditos por token */
+async function cash(){
+  const lots = Math.floor(S.cr/CR_FLX);
+  if(lots<1) return toast('Aún no llegas a 1 FLX');
+  $('#fl1').textContent = fmt(lots*CR_FLX)+' CR';
   $('#fl3').textContent = '🪙 '+fmt(lots)+' '+TOKEN;
   $('#btn-cash').disabled = true;
   ['#fl1','#fl2','#fl3'].forEach(s=>$(s).classList.remove('on'));
   $('#fl1').classList.add('on');
-  setTimeout(()=>$('#fl2').classList.add('on'),420);
-  setTimeout(()=>{
-    $('#fl3').classList.add('on');
-    S.cr -= cr; S.flx += lots; S.gotFLX += lots;
-    flash($('#t-flx')); renderTop(); renderBank(); renderHome();
-    toast(fmt(lots)+' '+TOKEN+' en tu cartera');
-  },1050);
-  setTimeout(()=>['#fl1','#fl2','#fl3'].forEach(s=>$(s).classList.remove('on')),2600);
+  setTimeout(()=>$('#fl2').classList.add('on'), 300);
+  const ok = await withTx('Cambiando por '+TOKEN, () => callGame('claimAll', [0,0]));
+  if(ok) $('#fl3').classList.add('on');
+  setTimeout(()=>['#fl1','#fl2','#fl3'].forEach(s=>$(s).classList.remove('on')), 2400);
+}
+
+/* =====================================================================
+   LECTURA DE LA CADENA
+   ===================================================================== */
+async function erc20Balance(token, who){
+  const r = await rpcCall(lc(token), encodeCall('balanceOf(address)', ['address'], [who]));
+  if(!r || r === '0x') return 0;
+  return parseFloat(ethers.formatUnits(BigInt(r), 18));
+}
+
+async function loadChain(){
+  if(!WALLET.address) return;
+  try{
+    const who = WALLET.address;
+    const [wld, flx, pl, lvl, ids] = await Promise.all([
+      erc20Balance(WLD_ADDRESS, who),
+      erc20Balance(FLX_ADDRESS, who),
+      readView('players', [who]),
+      readView('level', [who]),
+      readView('fleetOf', [who])
+    ]);
+    S.wld = wld; S.flx = flx;
+    if(pl){ S.lic = Number(pl[0]); S.hours = Number(pl[2]); S.crBase = parseFloat(ethers.formatUnits(pl[3], 18)); }
+    if(lvl) S.level = Number(lvl[0]);
+
+    const list = ids ? ids[0] : [];
+    const prev = new Map(S.fleet.map(v => [v.id, v]));
+    const fleet = [];
+    for(const raw of list){
+      const id = Number(raw);
+      const d = await readGame('vehicles(uint256)', ['uint256'], [id],
+        ['uint8','uint8','uint8','bool','uint40','uint40','uint40','uint128','uint128']);
+      if(!d) continue;
+      const old = prev.get(id) || {};
+      fleet.push({
+        id,
+        type:  CATALOG[Number(d[0])].id,
+        zone:  ZONES[Number(d[1])].name,
+        level: Number(d[2]),
+        working: d[3],
+        born:  Number(d[4]),
+        sync:  Number(d[5]),
+        turbo: Number(d[6]),
+        fuel0: parseFloat(ethers.formatUnits(d[7], 18)),
+        wear0: Number(d[8]),
+        phase: old.phase || 0, prog: old.prog || 0,
+        x: old.x !== undefined ? old.x : Math.random()*70
+      });
+    }
+    S.fleet = fleet;
+    S.loaded = true; S.lastRead = Date.now();
+    syncCars(); project(); renderAll();
+  }catch(e){
+    console.error('loadChain:', e);
+    toast('No se pudo leer la cadena', true);
+  }
+}
+
+/* Crea o retira los coches de la calle según la flota real */
+function syncCars(){
+  const have = new Set(S.fleet.map(v => 'car-'+v.id));
+  document.querySelectorAll('.car').forEach(el => { if(!have.has(el.id)) el.remove(); });
+  S.fleet.forEach(v => { if(!document.getElementById('car-'+v.id)) addCar(v); });
+  layoutCars();
 }
 
 /* hoja inferior: cambiar zona / ver cuentas */
@@ -1136,21 +1190,16 @@ function go(name){
 }
 
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-go],[data-act],[data-buyflx],[data-spd],[data-top]');
+  const b = e.target.closest('[data-go],[data-act]');
   if(!b) return;
   if(b.dataset.go) return go(b.dataset.go);
-  if(b.dataset.buyflx) return buyFLX(+b.dataset.buyflx);
-  if(b.dataset.top){
-    const k=b.dataset.top;
-    if(k==='wld') S.wld+=10; if(k==='flx') S.flx+=10000; if(k==='cr') S.cr+=5000;
-    flash($(k==='wld'?'#t-wld':k==='flx'?'#t-flx':'#t-cr'));
-    renderAll(); return toast('Saldo de pruebas añadido');
-  }
-  if(b.dataset.spd){ SPEED = +b.dataset.spd; renderCoop(); renderClock(); return toast('Simulación ×'+SPEED); }
   const a = b.dataset.act, id = b.dataset.id;
   if(a==='buy')   buy(id);
   if(a==='start'||a==='stop') toggle(id);
   if(a==='fuelall') refuelAll();
+  if(a==='workall') workAll(true);
+  if(a==='stopall') workAll(false);
+  if(a==='reload')  loadChain();
   if(a==='fixall')  fixAll();
   if(a==='fuel')  refuel(id);
   if(a==='fix')   fix(id);
@@ -1160,10 +1209,7 @@ document.addEventListener('click', e => {
   if(a==='info')  infoSheet(id);
   if(a==='lic')   buyLicense(b.dataset.lic);
   if(a==='close') closeSheet();
-  if(a==='setzone'){
-    const v = S.fleet.find(x=>x.id===+id); v.zone = b.dataset.zone;
-    closeSheet(); toast('Asignado a '+v.zone); renderFleet(); renderCity();
-  }
+  if(a==='setzone'){ closeSheet(); setZoneTx(id, b.dataset.zone); }
 });
 $('#btn-cash').addEventListener('click', cash);
 
@@ -1183,8 +1229,8 @@ $('#brand').src = ART.logo;
 const CHAIN_ID  = 480;
 const WORLD_RPC = 'https://worldchain-mainnet.g.alchemy.com/public';
 const WLD_ADDRESS  = '0x2cFc85d8E48F8EAB294be644d9E25C3030863003';
-const FLX_ADDRESS  = '0x0000000000000000000000000000000000000000';  // ← al desplegar FLX.sol
-const GAME_ADDRESS = '0x0000000000000000000000000000000000000000';  // ← al desplegar FleetX.sol
+const FLX_ADDRESS  = '0x330e1F5e60b8C3AE7c4e370792Da48C80f6f6FeE';  // FLX
+const GAME_ADDRESS = '0x3BD28Cc0D2Cd26E300b399224bE397537fBa7b86';  // FleetX
 
 let lastMiniKitError = null;
 const hex = n => Array.from({length:n},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
@@ -1224,16 +1270,32 @@ function txError(r, e){
 
 /* Firmas exactas de FleetX.sol */
 const FN = {
-  buyLicense: {sig:'buyLicense()',                       types:[]},
-  buyVehicle: {sig:'buyVehicle(uint8,uint8)',            types:['uint8','uint8']},
-  setWorking: {sig:'setWorking(uint256[],bool)',         types:['uint256[]','bool']},
-  setZone:    {sig:'setZone(uint256,uint8)',             types:['uint256','uint8']},
-  refuel:     {sig:'refuel(uint256[])',                  types:['uint256[]']},
-  repair:     {sig:'repair(uint256[])',                  types:['uint256[]']},
-  buyTurbo:   {sig:'buyTurbo(uint256[])',                types:['uint256[]']},
-  upgrade:    {sig:'upgrade(uint256)',                   types:['uint256']},
-  claim:      {sig:'claim(uint256[])',                   types:['uint256[]']}
+  buyLicense: {sig:'buyLicense()',                        types:[]},
+  buyVehicle: {sig:'buyVehicle(uint8,uint8)',             types:['uint8','uint8']},
+  setWorking: {sig:'setWorking(uint256,bool)',            types:['uint256','bool']},
+  workAll:    {sig:'workAll(bool,uint256,uint256)',       types:['bool','uint256','uint256']},
+  setZone:    {sig:'setZone(uint256,uint8)',              types:['uint256','uint8']},
+  refuel:     {sig:'refuel(uint256)',                     types:['uint256']},
+  refuelAll:  {sig:'refuelAll(uint256,uint256)',          types:['uint256','uint256']},
+  repair:     {sig:'repair(uint256)',                     types:['uint256']},
+  repairAll:  {sig:'repairAll(uint256,uint256)',          types:['uint256','uint256']},
+  turbo:      {sig:'turbo(uint256)',                      types:['uint256']},
+  turboAll:   {sig:'turboAll(uint256,uint256)',           types:['uint256','uint256']},
+  upgrade:    {sig:'upgrade(uint256)',                    types:['uint256']},
+  claimAll:   {sig:'claimAll(uint256,uint256)',           types:['uint256','uint256']}
 };
+/* Lecturas de solo-vista del contrato (gratis, sin firma) */
+const VIEW = {
+  fleetOf:      {sig:'fleetOf(address)',      types:['address'], out:['uint256[]']},
+  fleetSize:    {sig:'fleetSize(address)',    types:['address'], out:['uint256']},
+  pendingTotal: {sig:'pendingTotal(address)', types:['address'], out:['uint256']},
+  players:      {sig:'players(address)',      types:['address'], out:['uint8','uint32','uint64','uint256']},
+  level:        {sig:'level(address)',        types:['address'], out:['uint8']}
+};
+async function readView(name, args){
+  const v = VIEW[name];
+  return await readGame(v.sig, v.types, args, v.out);
+}
 
 /* Llama al contrato. Si hace falta aprobar un token, el approve viaja en la
    MISMA transacción combinada: una sola firma para el jugador. */
@@ -1297,16 +1359,10 @@ async function connectWallet(){
 
   const mk = getMK();
   if(!mk || !(mk.isInstalled && mk.isInstalled())){
-    // Fuera de World App se sigue pudiendo probar la maqueta, pero se avisa.
-    WALLET.address = '0x' + hex(40);
-    WALLET.username = 'fleet.' + hex(4);
-    WALLET.demo = true;
-    $('#w-user').textContent = '@' + WALLET.username;
-    $('#w-addr').textContent = short(WALLET.address) + ' · modo demo';
-    btn.textContent = 'Demo'; btn.classList.add('ghost');
-    $('#btn-create').disabled = false;
-    toast('Ábrelo desde World App para conectar tu wallet real');
-    return;
+    btn.disabled = false; btn.textContent = 'Reintentar';
+    $('#w-user').textContent = 'Fuera de World App';
+    $('#w-addr').textContent = 'Abre City Transport desde World App';
+    return toast('Esta app solo funciona dentro de World App', true);
   }
 
   try{
@@ -1328,6 +1384,7 @@ async function connectWallet(){
     $('#w-addr').textContent = short(address);
     btn.textContent = 'Conectada'; btn.classList.add('ghost');
     $('#btn-create').disabled = false;
+    S.owner = '@' + WALLET.username;
 
     // Si el username no vino en el payload, se resuelve por dirección aparte.
     if(!(mk.user && mk.user.username) && typeof mk.getUserByAddress === 'function'){
@@ -1366,14 +1423,17 @@ $('#btn-create').addEventListener('click', () => {
     </div>
     <div class="brief">
       <h3>Tu primera misión</h3>
-      <p>Saca la licencia Tipo A por 2,5 WLD (≈ 0,75 $) y llévate tu primer taxi urbano por 900 FLX. La siguiente licencia cuesta 5 WLD, la tercera 10, y así duplicando.</p>
+      <p>Saca la licencia Tipo A por 2,5 WLD (~0,75 $) y compra tu primer taxi urbano por 1,67M FLX (~1,50 $). Necesitas FLX: se compra en Uniswap, desde la pantalla del banco.</p>
     </div>
     <button class="btn" id="btn-enter" style="margin-top:18px">Entrar al panel</button></div>`;
-  $('#btn-enter').addEventListener('click', () => {
+  $('#btn-enter').addEventListener('click', async () => {
     ov.remove(); $('#app').hidden = false;
     buildSkyline(); renderAll(); renderClock();
     requestAnimationFrame(frame);
-    setTimeout(()=>toast('Bienvenido, '+owner+'. Empieza por la licencia.'),600);
+    await loadChain();                       // primera foto de la cadena
+    setInterval(loadChain, REFRESH);         // y se refresca sola
+    setInterval(() => { project(); liveUI(); renderClock(); }, 200);
+    if(!S.lic) setTimeout(()=>toast('Empieza sacando la licencia Tipo A'), 800);
   });
 });
 </script>
